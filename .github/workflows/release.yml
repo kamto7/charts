@@ -1,0 +1,25 @@
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Package Helm chart
+        run: helm package charts/* -d docs
+
+      - name: Publish to to GHCR
+        run: |
+          echo ${{secrets.PERSONAL_ACCESS_TOKENS}} | helm registry login ghcr.io -username ${{ github.actor }} --password-stdin
+          helm push docs/* oci://ghcr.io/${{ github.actor }}
+          
